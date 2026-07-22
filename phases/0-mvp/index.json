@@ -2,12 +2,43 @@
   "project": "MarketStream",
   "phase": "0-mvp",
   "steps": [
-    { "step": 0, "name": "monorepo-setup", "status": "pending" },
-    { "step": 1, "name": "shared-schema", "status": "pending" },
-    { "step": 2, "name": "market-bus", "status": "pending" },
-    { "step": 3, "name": "collector", "status": "pending" },
-    { "step": 4, "name": "distribution-api", "status": "pending" },
-    { "step": 5, "name": "web-dashboard", "status": "pending" },
-    { "step": 6, "name": "readme-and-demo", "status": "pending" }
-  ]
+    {
+      "step": 0,
+      "name": "monorepo-setup",
+      "status": "completed",
+      "started_at": "2026-07-22T16:32:22+0900",
+      "summary": "npm workspaces 모노레포 스캐폴드 — packages/shared(@market/shared, zod·SHARED_READY 뼈대)·apps/server(NestJS10 GET /health)·apps/web(Next15 App Router 다크 대시보드 뼈대). tsconfig.base + @market/shared path alias, 루트 build/lint/test/dev 스크립트. 포트 server:4000·web:3000. lint·build·test 모두 green(health 1건 통과)."
+    },
+    {
+      "step": 1,
+      "name": "shared-schema",
+      "status": "pending"
+    },
+    {
+      "step": 2,
+      "name": "market-bus",
+      "status": "pending"
+    },
+    {
+      "step": 3,
+      "name": "collector",
+      "status": "pending"
+    },
+    {
+      "step": 4,
+      "name": "distribution-api",
+      "status": "pending"
+    },
+    {
+      "step": 5,
+      "name": "web-dashboard",
+      "status": "pending"
+    },
+    {
+      "step": 6,
+      "name": "readme-and-demo",
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-07-22T16:32:21+0900"
 }
