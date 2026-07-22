@@ -37,10 +37,10 @@
     {
       "step": 4,
       "name": "distribution-api",
-      "status": "error",
-      "started_at": "2026-07-22T23:17:20+0900",
-      "error_message": "[3회 시도 후 실패] Step did not update status",
-      "failed_at": "2026-07-22T23:20:38+0900"
+      "status": "completed",
+      "started_at": "2026-07-23T01:12:06+0900",
+      "summary": "distribution 모듈(REST+WS) 구현·런타임 배선. distribution/market.controller.ts(@Controller('v1')): GET /v1/symbols(활성 심볼=bus.getLatest 심볼)·GET /v1/ticks(전체 NormalizedTick[])·GET /v1/ticks/:symbol(decodeURIComponent로 'BTC%2FKRW'→'BTC/KRW' 조회, 없으면 404). distribution/health.controller.ts: GET /health→{status:'ok',sources:['upbit','binance']}(구 src/health/ 이동·삭제). distribution/market.gateway.ts(@WebSocketGateway(), @nestjs/platform-ws WsAdapter): 클라 메시지 {event:'subscribe',data:{symbols:[]}}→bus.subscribe(symbols)를 client별 구독→tick마다 client.send({event:'tick',data:tick}); Map<WebSocket,Subscription>로 추적, handleDisconnect(OnGatewayDisconnect)에서 구독 해제(누수 방지). distribution.module.ts: CollectorModule import(MARKET_BUS만 사용, 커넥터 직접 import 0)·컨트롤러2·게이트웨이 provider. app.module.ts: CollectorModule+DistributionModule import(버스 단일 인스턴스 공유). main.ts: useWebSocketAdapter(WsAdapter)로 REST·WS 포트 4000 공유·enableCors()·app.get(CollectorService).start()(실 ws 소켓 기동은 부트스트랩에만). 설치: @nestjs/websockets·@nestjs/platform-ws·@types/ws(package.json엔 있었으나 미설치→npm install). 테스트: market.controller.spec(supertest, MARKET_BUS 시드 오버라이드, symbols·ticks·ticks/:symbol·404)·health.controller.spec·market.gateway.spec(app.listen(0)+ws 클라 접속→subscribe→bus.publish→{event:'tick'} 수신·미구독 심볼 미수신) 모두 오프라인. step 5 web 계약: REST 포트 4000 GET /v1/symbols·/v1/ticks·/v1/ticks/{encodeURIComponent(symbol)}·/health; WS ws://host:4000 send {event:'subscribe',data:{symbols}}→recv {event:'tick',data:NormalizedTick}. lint·build·test(shared 18 + server 36[+health1·market-controller4·gateway2, 구 health 1 제거]) 모두 green.",
+      "completed_at": "2026-07-23T01:18:54+0900"
     },
     {
       "step": 5,
