@@ -32,7 +32,7 @@
       "status": "completed",
       "started_at": "2026-07-22T22:59:42+0900",
       "summary": "수집 파이프라인 구현(WS→정규화→버스 publish). connectors/source-connector.ts: SocketFactory·WsLike·SourceConnector 인터페이스 + SOURCE_CONNECTORS DI 토큰. normalizer/: mapUpbitRaw(code→레지스트리 심볼, signed_change_rate×100, trade_timestamp??timestamp)·mapBinanceRaw(s→레지스트리 심볼, c/P/v Number 변환, E) 순수 함수 — 둘 다 parseTick(zod) 통과분만 반환. connectors/: UpbitConnector(구독메시지 전송, 바이너리→문자열, JSON→mapUpbitRaw)·BinanceConnector(combined-stream URL, {stream,data} 언랩→mapBinanceRaw) — 둘 다 SourceConnector 구현·SocketFactory 주입·정규화분만 ticks$ emit. connectors/ws-socket.factory.ts: wsSocketFactory(실 'ws' 지연 require, connect() 호출 시에만 로드 — 테스트는 fake 주입이라 미호출). collector.service.ts: CollectorService(@Injectable, MARKET_BUS+SOURCE_CONNECTORS 주입, start()/stop()로 커넥터 ticks$→bus.publish 배선; 자동기동 없음). collector.module.ts 확장: providers에 SOURCE_CONNECTORS(useValue=[new UpbitConnector(wsSocketFactory), new BinanceConnector(wsSocketFactory)])·CollectorService 추가, exports에 CollectorService 추가(버스 재사용). fixtures: apps/server/src/collector/__fixtures__/{upbit,binance}-{btc,eth}.json(손작성 raw). 설정: server tsconfig resolveJsonModule, tsconfig.build.json paths:{}(빌드는 @market/shared dist 소비—값 import rootDir 이슈 해소), server deps ws@^8.21.1. step 4 런타임 기동: AppModule에 CollectorModule import 후 main.ts에서 app.get(CollectorService).start(). lint·build·test(shared 18 + server 30[health1·bus9·upbit-normalizer5·binance-normalizer4·upbit-connector4·binance-connector4·service3]) 모두 green.",
-      "completed_at": "2026-07-22T23:05:10+0900"
+      "completed_at": "2026-07-22T23:17:19+0900"
     },
     {
       "step": 4,
