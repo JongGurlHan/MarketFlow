@@ -4,6 +4,7 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "baseUrl": "./",
+    "resolveJsonModule": true,
     "paths": {
       "@market/shared": ["../../packages/shared/src"]
     }
