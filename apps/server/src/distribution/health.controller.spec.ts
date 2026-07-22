@@ -12,7 +12,10 @@ describe('HealthController', () => {
     controller = moduleRef.get(HealthController);
   });
 
-  it('GET /health returns { status: ok }', () => {
-    expect(controller.check()).toEqual({ status: 'ok' });
+  it('GET /health returns { status: ok, sources }', () => {
+    expect(controller.check()).toEqual({
+      status: 'ok',
+      sources: ['upbit', 'binance'],
+    });
   });
 });
