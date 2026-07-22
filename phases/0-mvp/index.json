@@ -29,7 +29,10 @@
     {
       "step": 3,
       "name": "collector",
-      "status": "pending"
+      "status": "error",
+      "started_at": "2026-07-22T16:49:30+0900",
+      "error_message": "[3회 시도 후 실패] Step did not update status",
+      "failed_at": "2026-07-22T16:49:37+0900"
     },
     {
       "step": 4,
