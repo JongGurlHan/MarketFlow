@@ -4,12 +4,9 @@
   "steps": [
     { "step": 0, "name": "monorepo-setup", "status": "pending" },
     { "step": 1, "name": "shared-schema", "status": "pending" },
-    { "step": 2, "name": "normalizer", "status": "pending" },
-    { "step": 3, "name": "upbit-collector", "status": "pending" },
-    { "step": 4, "name": "redis-bus", "status": "pending" },
-    { "step": 5, "name": "rest-api", "status": "pending" },
-    { "step": 6, "name": "websocket-api", "status": "pending" },
-    { "step": 7, "name": "web-dashboard", "status": "pending" },
-    { "step": 8, "name": "compose-and-readme", "status": "pending" }
+    { "step": 2, "name": "collector", "status": "pending" },
+    { "step": 3, "name": "distribution-api", "status": "pending" },
+    { "step": 4, "name": "web-dashboard", "status": "pending" },
+    { "step": 5, "name": "readme-and-demo", "status": "pending" }
   ]
 }
