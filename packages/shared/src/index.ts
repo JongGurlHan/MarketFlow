@@ -1,2 +1,4 @@
-// Placeholder — replaced by the NormalizedTick schema in step 1 (shared-schema).
-export const SHARED_READY = true;
+// @market/shared — NormalizedTick 표준 스키마·심볼 유틸의 단일 출처.
+export * from './types';
+export * from './schema';
+export * from './symbols';
