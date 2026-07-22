@@ -16,7 +16,7 @@
       "status": "completed",
       "started_at": "2026-07-22T16:41:07+0900",
       "summary": "@market/shared 표준 스키마 구현. types.ts: Source('upbit'|'binance')·AssetClass('crypto')·NormalizedTick 인터페이스. schema.ts: zod NormalizedTickSchema(price·sourceTimestamp·ingestTimestamp 필수 유한수, changeRate24h·volume24h·sequence optional) + parseTick(throw)/isValidTick(bool) 헬퍼, 타입↔스키마 컴파일타임 일치 가드. symbols.ts: toStandardSymbol(base,quote)→'BASE/QUOTE'·splitSymbol()·MarketEntry 타입·레지스트리 UPBIT_MARKETS(KRW-BTC→BTC/KRW,KRW-ETH→ETH/KRW)·BINANCE_MARKETS(BTCUSDT→BTC/USDT,ETHUSDT→ETH/USDT). index.ts에서 전량 re-export(SHARED_READY 제거). 다음 step import 심볼: NormalizedTick, Source, AssetClass, NormalizedTickSchema, parseTick, isValidTick, toStandardSymbol, splitSymbol, UPBIT_MARKETS, BINANCE_MARKETS. lint·build(dist/ 생성, spec 제외)·test(shared 18건+server 1건) 모두 green.",
-      "completed_at": "2026-07-22T16:44:07+0900"
+      "completed_at": "2026-07-22T16:45:26+0900"
     },
     {
       "step": 2,
