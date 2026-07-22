@@ -4,9 +4,10 @@
   "steps": [
     { "step": 0, "name": "monorepo-setup", "status": "pending" },
     { "step": 1, "name": "shared-schema", "status": "pending" },
-    { "step": 2, "name": "collector", "status": "pending" },
-    { "step": 3, "name": "distribution-api", "status": "pending" },
-    { "step": 4, "name": "web-dashboard", "status": "pending" },
-    { "step": 5, "name": "readme-and-demo", "status": "pending" }
+    { "step": 2, "name": "market-bus", "status": "pending" },
+    { "step": 3, "name": "collector", "status": "pending" },
+    { "step": 4, "name": "distribution-api", "status": "pending" },
+    { "step": 5, "name": "web-dashboard", "status": "pending" },
+    { "step": 6, "name": "readme-and-demo", "status": "pending" }
   ]
 }

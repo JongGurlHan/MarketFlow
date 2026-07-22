@@ -1,35 +1,43 @@
-# Step 4: web-dashboard
+# Step 4: distribution-api
 
 ## 읽어야 할 파일
 
-- `docs/UI_GUIDE.md` — 색상·타이포·컴포넌트·애니메이션 규칙(반드시 준수)
-- `docs/ARCHITECTURE.md` — web 데이터 흐름(최초 REST 스냅샷 → WS 실시간)
-- `packages/shared/src/` — `NormalizedTick` 타입(그대로 import)
-- `apps/server/src/distribution/` — REST 엔드포인트·WS 메시지 규약(step 3 summary 참조)
-- `apps/web/` 전체 — step 0의 Next 뼈대
+- `CLAUDE.md` — CRITICAL 규칙(버스 인터페이스로만 통신, NormalizedTick 게이트)
+- `docs/ARCHITECTURE.md` — 데이터 흐름의 distribution 부분, REST/WS 엔드포인트
+- `packages/shared/src/` — `NormalizedTick` 타입
+- `apps/server/src/collector/` 전체 — step 2의 `MARKET_BUS` 토큰·`InMemoryMarketBus`·`CollectorModule`, step 3의 커넥터 클래스·`CollectorService`·심볼 레지스트리
 
 ## 작업
 
-`apps/web`에 실시간 시세 대시보드를 구현한다. 최초 REST 스냅샷을 로드하고 WebSocket 구독으로 실시간 갱신한다. **UI_GUIDE.md를 엄격히 준수**한다(금융 단말 미학, AI 슬롭 안티패턴 금지).
+`apps/server`의 `distribution` 모듈(REST + WebSocket 배포)을 구현하고, 런타임에 실 커넥터를 기동하도록 `main.ts`를 배선한다. distribution은 **`MARKET_BUS` 토큰으로 주입받은 `MarketBus`로만** 데이터를 읽는다(커넥터 직접 참조 금지).
 
-### 1. 설정
-- `src/lib/config.ts`: `API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'`, `WS_URL`은 API_URL을 ws로 변환.
-- 구독 대상 심볼: shared의 레지스트리(`UPBIT_MARKETS`, `BINANCE_MARKETS`)에서 표준 심볼 목록을 만든다.
+### 1. `src/distribution/market.controller.ts` (REST)
+- `GET /v1/symbols` → 활성 심볼 목록.
+- `GET /v1/ticks` → 전체 최신 스냅샷 `NormalizedTick[]` (`bus.getLatest()`).
+- `GET /v1/ticks/:symbol` → 해당 심볼 스냅샷. URL 인코딩('BTC/KRW' → `BTC%2FKRW`)을 디코드해 조회. 없으면 404.
 
-### 2. `src/lib/useMarketStream.ts` (client hook)
-- 최초: `GET /v1/ticks`로 스냅샷 로드 → 상태 초기화.
-- WS: `WS_URL` 접속, open 시 `{ event: 'subscribe', data: { symbols } }` 전송. `{ event: 'tick' }` 수신 시 해당 심볼 상태 갱신.
-- 연결 상태(`connecting|open|closed`)를 반환. 언마운트 시 소켓 정리.
-- 반환: `{ ticks: Record<string, NormalizedTick>, status }`.
+### 2. `src/distribution/health.controller.ts`
+- 기존 `src/health/`가 있으면 distribution으로 옮기거나 그대로 두되, `GET /health` → `{ status:'ok', sources:['upbit','binance'] }`.
 
-### 3. 컴포넌트
-- `src/components/TickTable.tsx` (핵심, `'use client'`): props `ticks: NormalizedTick[]`. 열 = 심볼 · 현재가 · 24h 변동률 · 소스 · 최종 갱신. 숫자는 `font-mono tabular-nums` 우측 정렬. 변동률 부호에 따라 상승 초록(`#22c55e`)/하락 빨강(`#ef4444`). 가격 갱신 시 셀을 150ms 플래시 후 원복(그 외 애니메이션 금지). **순수 컴포넌트로 작성**(props만으로 렌더)해 테스트가 쉽도록.
-- `src/components/SourceStatus.tsx`: 소스별/연결 상태를 작은 원형 점(초록/노랑/빨강) + 레이블로. 글로우·펄스 금지.
-- `src/app/page.tsx`: `useMarketStream` 사용, 상단에 제목 + `SourceStatus`, 본문에 `TickTable`. `max-w-6xl` 좌측 정렬.
+### 3. `src/distribution/market.gateway.ts` (WebSocket)
+- `@nestjs/websockets` + `@nestjs/platform-ws`(`ws`) 사용. `@WebSocketGateway()`.
+- 클라이언트 메시지 규약(WsAdapter, JSON): `{ "event": "subscribe", "data": { "symbols": ["BTC/KRW", "BTC/USDT"] } }`.
+- 구독 시 `bus.subscribe(symbols)`를 client별로 구독해 tick 수신마다 `client.send(JSON.stringify({ event:'tick', data: tick }))`로 push.
+- client `close` 시 해당 RxJS 구독 해제(메모리 누수 방지).
 
-### 4. 테스트
-- `TickTable`에 대한 React Testing Library 렌더 테스트: 샘플 `NormalizedTick[]` props로 렌더 → 심볼 문자열과 가격이 문서에 나타나는지, 상승/하락 색 클래스가 적용되는지 검증.
-- jest 환경은 `jest-environment-jsdom`. Next 컴포넌트 테스트용 jest 설정을 추가한다(step 0에서 `--passWithNoTests`였다면 실제 테스트로 대체).
+### 4. `src/distribution/distribution.module.ts`
+- `CollectorModule`을 import(버스 provider를 가져오기 위함). 컨트롤러·게이트웨이 등록.
+
+### 5. `src/app.module.ts` + `src/main.ts` 배선
+- `AppModule`: `CollectorModule` + `DistributionModule` import.
+- `main.ts`:
+  - `app.useWebSocketAdapter(new WsAdapter(app))`(REST와 WS가 같은 포트 `4000` 공유).
+  - `app.enableCors()` — web(3000)에서 접근.
+  - **런타임에만** 실 소켓 팩토리(`ws` 패키지)로 Upbit·Binance 커넥터를 생성해 `CollectorService.start()` 호출. 이 실 기동 코드는 `main.ts`(부트스트랩)에만 둔다 — 모듈 초기화 훅에 넣지 마라.
+
+### 6. 테스트 (오프라인)
+- REST: `@nestjs/testing` `Test.createTestingModule` + `supertest`. `MARKET_BUS`를 시드된 `InMemoryMarketBus`(또는 목)로 오버라이드 → `/v1/symbols`, `/v1/ticks`, `/v1/ticks/BTC%2FKRW`, 없는 심볼 404 검증.
+- WS: 테스트 앱을 실제 포트로 listen → `ws` 클라이언트로 접속 → `subscribe` 메시지 전송 → 버스에 tick `publish` → 클라이언트가 `{event:'tick'}` 수신 검증. 외부망 접속 없음.
 
 ## Acceptance Criteria
 
@@ -39,22 +47,22 @@ npm run build
 npm run test
 ```
 
-`next build`가 통과하고 `TickTable` 렌더 테스트가 통과해야 한다. (전체 루트에서도 `npm run build && npm run test` green)
+REST(supertest) + WS(ws 클라이언트) e2e가 외부망 없이 통과해야 한다.
 
 ## 검증 절차
 
 1. 위 AC 커맨드를 실행한다.
-2. UI_GUIDE 체크리스트:
-   - 금지된 AI 슬롭 패턴(blur/glass, gradient-text, 보라색 브랜드, gradient orb, 글로우 애니메이션)이 없는가?
-   - 숫자가 모노스페이스·우측정렬, 상승/하락 색이 적용됐는가?
-   - 허용된 애니메이션(가격 플래시 150ms) 외에 애니메이션이 없는가?
+2. 체크리스트:
+   - distribution이 커넥터·매퍼를 직접 import하지 않고 `MARKET_BUS`만 사용하는가?
+   - 실 소켓 기동이 `main.ts`에만 있는가?(테스트가 외부망에 안 붙는가)
+   - REST 응답이 `NormalizedTick` 형태인가?(raw 노출 없음)
 3. `phases/0-mvp/index.json`의 step 4를 업데이트:
-   - 성공 → `"completed"` + `"summary"`(대시보드 컴포넌트·훅 구조, 사용한 엔드포인트 요약).
+   - 성공 → `"completed"` + `"summary"`(엔드포인트 목록·WS 메시지 규약·포트 — step 5 web이 사용할 계약).
    - 실패 → `"error"` + `"error_message"`.
 
 ## 금지사항
 
-- `docs/UI_GUIDE.md`의 "AI 슬롭 안티패턴"을 위반하지 마라. 이유: 포트폴리오 심사자가 가장 먼저 감점하는 지점.
-- 테스트를 실 백엔드/외부망에 의존시키지 마라. 이유: 오프라인 AC 위반. `TickTable`은 props만으로 테스트한다.
-- 서버가 안 떠 있어도 `next build`가 실패하지 않게 하라(빌드 타임에 백엔드 fetch 금지 — 데이터는 client에서 로드).
+- distribution에서 커넥터/매퍼/소켓을 직접 import하지 마라. 이유: 버스 인터페이스 디커플링(CLAUDE.md CRITICAL). 어기면 Redis 전환·프로세스 분리가 막힌다.
+- 테스트에서 실 거래소에 접속하지 마라. 이유: 오프라인 AC 위반.
+- WS 게이트웨이에서 client 종료 시 구독 해제를 빠뜨리지 마라. 이유: 구독 누수.
 - 기존 테스트를 깨뜨리지 마라.

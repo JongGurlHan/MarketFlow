@@ -44,14 +44,10 @@ export interface NormalizedTick {
 export const UPBIT_MARKETS = [
   { raw: 'KRW-BTC', symbol: 'BTC/KRW' },
   { raw: 'KRW-ETH', symbol: 'ETH/KRW' },
-  { raw: 'KRW-XRP', symbol: 'XRP/KRW' },
-  { raw: 'KRW-SOL', symbol: 'SOL/KRW' },
 ];
 export const BINANCE_MARKETS = [
   { raw: 'BTCUSDT', symbol: 'BTC/USDT' },
   { raw: 'ETHUSDT', symbol: 'ETH/USDT' },
-  { raw: 'XRPUSDT', symbol: 'XRP/USDT' },
-  { raw: 'SOLUSDT', symbol: 'SOL/USDT' },
 ];
 ```
 

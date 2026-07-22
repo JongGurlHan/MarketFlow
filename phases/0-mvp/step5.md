@@ -1,57 +1,60 @@
-# Step 5: readme-and-demo
+# Step 5: web-dashboard
 
 ## 읽어야 할 파일
 
-- `docs/PRD.md` — 도메인 프레이밍("왜 크립토냐"), 목표·사용자
-- `docs/ARCHITECTURE.md` — 모노레포 구조·데이터 흐름·스키마
-- `docs/ADR.md` — 핵심 결정·후속 phase 로드맵
-- `apps/server/`, `apps/web/`, `packages/shared/` — 실제 구현된 스크립트·엔드포인트·포트를 확인해 README와 일치시킨다
+- `docs/UI_GUIDE.md` — 색상·타이포·컴포넌트·애니메이션 규칙(반드시 준수)
+- `docs/ARCHITECTURE.md` — web 데이터 흐름(최초 REST 스냅샷 → WS 실시간)
+- `packages/shared/src/` — `NormalizedTick` 타입·심볼 레지스트리(그대로 import)
+- `apps/server/src/distribution/` — REST 엔드포인트·WS 메시지 규약(step 4 summary 참조)
+- `apps/web/` 전체 — step 0의 Next 뼈대
 
 ## 작업
 
-루트 `README.md`를 작성한다. 이것은 **포트폴리오의 첫인상**이다 — 금융정보 벤더 심사자가 도메인 이해도와 아키텍처 설계 능력을 읽는 문서다. 코드가 아니라 README에 새 코드를 추가하는 step이 아니다(문서 중심).
+`apps/web`에 실시간 시세 대시보드를 구현한다. 최초 REST 스냅샷을 로드하고 WebSocket 구독으로 실시간 갱신한다. **UI_GUIDE.md를 엄격히 준수**한다(금융 단말 미학, AI 슬롭 안티패턴 금지).
 
-### `README.md` 필수 섹션
-1. **한 줄 소개 + 도메인 프레이밍**: MarketStream이 무엇이고, 금융정보 벤더의 "실시간 수집→가공→배포" 본업을 어떻게 재현하는지. `docs/PRD.md`의 "왜 크립토냐"를 심사자용으로 다듬어 서술(자산군은 달라도 엔지니어링 구조는 동일).
-2. **아키텍처 다이어그램**(ASCII): `docs/ARCHITECTURE.md`의 데이터 흐름(Upbit·Binance WS → 커넥터 → 정규화 → MarketBus → REST/WS → 대시보드)을 그린다.
-3. **핵심 설계 포인트**: ① 이종 소스 정규화(`NormalizedTick`, `SourceConnector`), ② 수집·배포 디커플링(`MarketBus` 인터페이스 — 지금 인메모리, 나중 Redis), ③ 오프라인 결정론적 테스트. 각각 "왜 이렇게 했는가"를 1–2줄로.
-4. **표준 스키마**: `NormalizedTick` 코드 블록 + 심볼 정규화 예(`KRW-BTC`→`BTC/KRW`, `BTCUSDT`→`BTC/USDT`).
-5. **API**: `GET /v1/symbols`, `GET /v1/ticks`, `GET /v1/ticks/:symbol`, WS 구독 메시지 규약. `curl`·`wscat` 예시 포함.
-6. **실행법**: `npm install` → `npm run dev` → 대시보드 `http://localhost:3000`, API `http://localhost:4000`. 개별 스크립트(build/test/lint)도.
-7. **확장 로드맵**: phase 1(재접속·백오프, 시퀀스 갭, **버스 Redis 교체**, API 키+rate limit+Swagger), phase 2(Elasticsearch 이력, Prometheus/Grafana, 부하 테스트 p50/p99). "간단히 → 확장 가능"을 코드 seam(인터페이스)으로 어떻게 준비했는지 명시.
-8. **기술 스택** 요약.
+### 1. 설정
+- `src/lib/config.ts`: `API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'`, `WS_URL`은 API_URL을 ws로 변환.
+- 구독 대상 심볼: shared 레지스트리(`UPBIT_MARKETS`, `BINANCE_MARKETS`)에서 표준 심볼 목록 생성(현재 BTC·ETH의 KRW·USDT).
 
-### 데모 자리표시
-- README에 "데모" 섹션과 GIF 삽입 자리(`docs/demo.gif`)를 마련한다(파일은 사용자가 나중에 녹화). 실제 바이너리 GIF를 생성하려 하지 마라.
+### 2. `src/lib/useMarketStream.ts` (client hook)
+- 최초: `GET /v1/ticks`로 스냅샷 로드 → 상태 초기화.
+- WS: `WS_URL` 접속, open 시 `{ event:'subscribe', data:{ symbols } }` 전송. `{ event:'tick' }` 수신 시 해당 심볼 상태 갱신.
+- 연결 상태(`connecting|open|closed`) 반환. 언마운트 시 소켓 정리.
+- 반환: `{ ticks: Record<string, NormalizedTick>, status }`.
 
-### (선택) 실행 편의
-- `package.json`에 이미 `dev` 스크립트가 있으므로 추가 스크립트는 불필요. 필요하면 README에 실행 순서만 명확히.
+### 3. 컴포넌트
+- `src/components/TickTable.tsx` (핵심, `'use client'`): props `ticks: NormalizedTick[]`. 열 = 심볼 · 현재가 · 24h 변동률 · 소스 · 최종 갱신. 숫자는 `font-mono tabular-nums` 우측 정렬. 변동률 부호에 따라 상승 초록(`#22c55e`)/하락 빨강(`#ef4444`). 가격 갱신 시 셀을 150ms 플래시 후 원복(그 외 애니메이션 금지). **순수 컴포넌트**(props만으로 렌더)로 작성해 테스트가 쉽도록.
+- `src/components/SourceStatus.tsx`: 소스별/연결 상태를 작은 원형 점(초록/노랑/빨강) + 레이블. 글로우·펄스 금지.
+- `src/app/page.tsx`: `useMarketStream` 사용, 상단에 제목 + `SourceStatus`, 본문에 `TickTable`. `max-w-6xl` 좌측 정렬.
+
+### 4. 테스트
+- `TickTable` React Testing Library 렌더 테스트: 샘플 `NormalizedTick[]` props로 렌더 → 심볼·가격이 문서에 나타나는지, 상승/하락 색 클래스 적용 여부 검증.
+- jest 환경 `jest-environment-jsdom`. step 0에서 `--passWithNoTests`였다면 실제 테스트 설정으로 대체.
 
 ## Acceptance Criteria
 
 ```bash
+npm run lint
 npm run build
 npm run test
-test -f README.md
-grep -q "NormalizedTick" README.md
-grep -q "/v1/ticks" README.md
 ```
 
-루트 build/test가 여전히 green이고, README.md가 존재하며 핵심 섹션(스키마·API)을 포함해야 한다.
+`next build`가 통과하고 `TickTable` 렌더 테스트가 통과해야 한다. (루트에서도 `npm run build && npm run test` green)
 
 ## 검증 절차
 
 1. 위 AC 커맨드를 실행한다.
-2. 체크리스트:
-   - README의 엔드포인트·포트·스크립트가 실제 구현(`apps/server`, 루트 `package.json`)과 일치하는가?
-   - 도메인 프레이밍이 "가상자산 거래 서비스"가 아니라 "시장 데이터 플랫폼"으로 서술됐는가?
+2. UI_GUIDE 체크리스트:
+   - 금지된 AI 슬롭 패턴(blur/glass, gradient-text, 보라색 브랜드, gradient orb, 글로우 애니메이션)이 없는가?
+   - 숫자가 모노스페이스·우측정렬, 상승/하락 색이 적용됐는가?
+   - 허용된 애니메이션(가격 플래시 150ms) 외에 애니메이션이 없는가?
 3. `phases/0-mvp/index.json`의 step 5를 업데이트:
-   - 성공 → `"completed"` + `"summary"`(README 완성·phase 0 종료).
+   - 성공 → `"completed"` + `"summary"`(대시보드 컴포넌트·훅 구조, 사용한 엔드포인트).
    - 실패 → `"error"` + `"error_message"`.
 
 ## 금지사항
 
-- 실제 GIF 바이너리를 생성/커밋하려 하지 마라. 이유: 녹화는 사용자 몫. 삽입 자리(경로)만 마련한다.
-- 구현과 다른 엔드포인트·포트·명령어를 README에 적지 마라. 이유: 거짓 문서는 심사에서 치명적. 실제 코드를 확인하고 쓴다.
-- 코드(서버·웹) 동작을 이 step에서 바꾸지 마라. 이유: 문서 step. 기존 green을 유지한다.
+- `docs/UI_GUIDE.md`의 "AI 슬롭 안티패턴"을 위반하지 마라. 이유: 포트폴리오 심사자가 가장 먼저 감점하는 지점.
+- 테스트를 실 백엔드/외부망에 의존시키지 마라. 이유: 오프라인 AC 위반. `TickTable`은 props만으로 테스트.
+- 서버가 안 떠 있어도 `next build`가 실패하지 않게 하라(빌드 타임 백엔드 fetch 금지 — 데이터는 client에서 로드).
 - 기존 테스트를 깨뜨리지 마라.
