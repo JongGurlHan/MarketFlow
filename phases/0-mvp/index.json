@@ -21,7 +21,10 @@
     {
       "step": 2,
       "name": "market-bus",
-      "status": "pending"
+      "status": "completed",
+      "started_at": "2026-07-22T16:45:27+0900",
+      "summary": "인메모리 MarketBus 계약 구현. apps/server/src/collector/bus/market-bus.ts: MarketBus 인터페이스(publish·getLatest·getLatestBySymbol·subscribe) + InMemoryMarketBus(@Injectable, Map<symbol,NormalizedTick> 최신값 + RxJS Subject 스트림; subscribe(symbols)는 심볼 필터, 빈 배열이면 전체) + MARKET_BUS DI 토큰(Symbol). collector.module.ts: CollectorModule이 {provide:MARKET_BUS, useClass:InMemoryMarketBus} 제공·export(다른 모듈 주입용). step 3·4 재사용: 토큰 MARKET_BUS·타입 MarketBus·클래스 InMemoryMarketBus는 collector/bus/market-bus에서, CollectorModule은 collector/collector.module에서 import. lint·build·test(shared 18 + server 10[health 1 + market-bus 9]) 모두 green.",
+      "completed_at": "2026-07-22T16:49:29+0900"
     },
     {
       "step": 3,
