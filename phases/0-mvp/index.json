@@ -48,7 +48,7 @@
       "status": "completed",
       "started_at": "2026-07-23T01:20:58+0900",
       "summary": "apps/web 실시간 대시보드 구현(최초 REST 스냅샷 → WS 실시간 갱신). src/lib/config.ts: API_URL(NEXT_PUBLIC_API_URL ?? http://localhost:4000)·WS_URL(http→ws 스킴 변환)·SYMBOLS(shared UPBIT_MARKETS+BINANCE_MARKETS에서 표준 심볼 생성). src/lib/useMarketStream.ts('use client' 훅): 마운트 시 GET /v1/ticks 스냅샷으로 ticks 초기화 → new WebSocket(WS_URL) open 시 {event:'subscribe',data:{symbols:SYMBOLS}} 전송, {event:'tick'} 수신마다 심볼별 상태 갱신; status(connecting|open|closed) 반환, 모든 네트워크는 useEffect 내부(빌드 타임 fetch 0)·언마운트 시 socket.close(). src/components/TickTable.tsx('use client', 순수 컴포넌트 props ticks만): 열=심볼·현재가·24h 변동률·소스·최종 갱신, 숫자 font-mono tabular-nums 우측정렬, 변동률 상승 #22c55e(class change-up)/하락 #ef4444(class change-down)/보합 #737373, PriceCell이 useRef 이전가 비교로 가격 변경 시 150ms 배경 플래시 후 원복(그 외 애니메이션 0), 빈 상태 '데이터 대기 중…'. src/components/SourceStatus.tsx: 연결 상태 원형 점(open 초록·connecting 노랑·closed 빨강)+레이블, 글로우·펄스 0. src/app/page.tsx('use client'): useMarketStream → 심볼 정렬 rows, max-w-6xl(72rem) 좌측정렬, 상단 제목+SourceStatus·본문 TickTable. 인라인 스타일로 UI_GUIDE 토큰 구현(Tailwind 미도입, 스캐폴드와 일관). 설정: jest.setup.ts(@testing-library/jest-dom)+jest.config setupFilesAfterEnv, package.json test는 jest, .eslintrc 테스트 파일 jest env override. 테스트: TickTable.test.tsx(RTL 4건 — 심볼·포맷가 렌더, 상승/하락 색 클래스·색상, 심볼별 행) 오프라인 props-only. 사용 엔드포인트: REST GET /v1/ticks, WS ws://host:4000 subscribe/tick. lint·build(next build 정적 프리렌더 통과)·test(shared 18 + server 36 + web 4) 모두 green.",
-      "completed_at": "2026-07-23T01:30:38+0900"
+      "completed_at": "2026-07-23T01:31:21+0900"
     },
     {
       "step": 6,
