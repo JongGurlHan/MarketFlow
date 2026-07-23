@@ -53,10 +53,10 @@
     {
       "step": 6,
       "name": "readme-and-demo",
-      "status": "error",
-      "started_at": "2026-07-23T01:31:21+0900",
-      "error_message": "[3회 시도 후 실패] Step did not update status",
-      "failed_at": "2026-07-23T01:31:28+0900"
+      "status": "completed",
+      "started_at": "2026-07-23T11:33:48+0900",
+      "summary": "루트 README.md 작성(문서 중심 step, 코드 무변경) — phase 0 종료. 섹션: 한 줄 소개+도메인 프레이밍('왜 크립토냐': 자산군 무관 동일 엔지니어링 구조·공개 실시간 피드로 검증·이종 소스 정규화 시연·assetClass 확장 대비), ASCII 아키텍처 다이어그램(Upbit·Binance WS→커넥터→Normalizer(zod)→MarketBus(Map 최신값+RxJS Subject)→REST/WS→대시보드, SourceConnector seam 표기), 핵심 설계 3점(NormalizedTick·SourceConnector 이종 정규화 / MarketBus 인터페이스 수집·배포 디커플링·phase1 Redis 무수정 교체 / 오프라인 결정론적 테스트), 표준 스키마 NormalizedTick 코드블록+심볼 정규화 표(KRW-BTC→BTC/KRW·BTCUSDT→BTC/USDT 등), API(GET /health·/v1/symbols·/v1/ticks·/v1/ticks/:symbol[BTC%2FKRW 인코딩]·WS ws://localhost:4000 subscribe/tick 규약, curl·wscat 예시), 실행법(npm install→npm run dev, 대시보드 3000·API 4000, build/lint/test), 데모 섹션+docs/demo.gif 삽입 자리(바이너리 미생성), 확장 로드맵(phase1 재접속·백오프·시퀀스갭·버스 Redis 교체·API키+rate limit+Swagger / phase2 Elasticsearch·Prometheus/Grafana·부하테스트 p50/p99), 기술 스택·문서 링크. 실제 구현과 포트·엔드포인트·스크립트 일치 검증. AC(build·test green, README.md 존재, NormalizedTick·/v1/ticks 포함) 통과, lint·build·test(shared 18+server 36+web 4) 모두 green.",
+      "completed_at": "2026-07-23T11:36:40+0900"
     }
   ],
   "created_at": "2026-07-22T16:32:21+0900"
